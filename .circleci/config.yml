@@ -1,0 +1,49 @@
+version: 2.1
+
+jobs:
+  phpstan:
+    docker:
+      - image: cimg/php:8.1
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - composer-deps-v1-{{ checksum "composer.lock" }}
+            - composer-deps-v1-
+
+      - run:
+          name: Install Composer
+          command: |
+            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+            php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+            php -r "unlink('composer-setup.php');"
+
+      - run:
+          name: Install Dependencies
+          command: composer install --no-interaction --prefer-dist
+
+      - save_cache:
+          key: composer-deps-v1-{{ checksum "composer.lock" }}
+          paths:
+            - ./vendor
+
+      - run:
+          name: Run PHPStan Analysis
+          command: |
+            mkdir -p test-results/phpstan
+            php -d memory_limit=1G vendor/bin/phpstan analyse -c phpstan.neon > test-results/phpstan/results.txt
+
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+
+      - store_test_results:
+          path: test-results
+
+workflows:
+  version: 2
+  static-analysis:
+    jobs:
+      - phpstan

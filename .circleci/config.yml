@@ -16,31 +16,33 @@ jobs:
       - run:
           name: Install Composer
           command: |
-            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-            sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
-            php -r "unlink('composer-setup.php');"
+            if [ ! -f /usr/local/bin/composer ]; then
+              php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+              sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+              php -r "unlink('composer-setup.php');"
+            fi
 
       - run:
           name: Install Dependencies
-          command: composer install --no-interaction --prefer-dist
+          command: composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
 
       - save_cache:
           key: composer-deps-v1-{{ checksum "composer.lock" }}
           paths:
-            - ./vendor
+            - vendor
 
       - run:
           name: Run PHPStan Analysis
           command: |
             mkdir -p test-results/phpstan
-            php -d memory_limit=1G vendor/bin/phpstan analyse -c phpstan.neon > test-results/phpstan/results.txt
+            php -d memory_limit=1G vendor/bin/phpstan analyse -c phpstan.neon --error-format=checkstyle > test-results/phpstan/results.xml
 
       - store_artifacts:
-          path: test-results
-          destination: test-results
+          path: test-results/phpstan
+          destination: phpstan
 
       - store_test_results:
-          path: test-results
+          path: test-results/phpstan
 
 workflows:
   version: 2

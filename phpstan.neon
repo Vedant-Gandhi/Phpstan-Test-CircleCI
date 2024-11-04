@@ -1,0 +1,32 @@
+parameters:
+    level: 5
+    paths:
+        - src
+        - tests
+
+    # Exclude paths from analysis
+    excludePaths:
+        - vendor/*
+        - tests/bootstrap.php
+
+    # Cache configuration
+    tmpDir: build/phpstan
+
+    # Parallel processing
+    parallel:
+        maximumNumberOfProcesses: 4
+        jobSize: 20
+        minimumNumberOfJobsPerProcess: 2
+
+    # Error formatting
+    errorFormat: github
+
+    # Ignore specific errors if needed
+    ignoreErrors: []
+
+    # Stricter analysis settings
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: true
+
+    # Treat PHPDoc types as certain
+    treatPhpDocTypesAsCertain: true

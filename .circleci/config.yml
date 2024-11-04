@@ -35,7 +35,13 @@ jobs:
           name: Run PHPStan Analysis
           command: |
             mkdir -p test-results/phpstan
-            php -d memory_limit=1G vendor/bin/phpstan analyse -c phpstan.neon > test-results/phpstan/results.xml
+            # Run PHPStan and show results in console
+            vendor/bin/phpstan analyse -c phpstan.neon || true
+            # Save results to file
+            vendor/bin/phpstan analyse -c phpstan.neon --error-format=json > test-results/phpstan/results.json
+            # Create a more readable version
+            vendor/bin/phpstan analyse -c phpstan.neon --error-format=table > test-results/phpstan/results.txt
+            echo "PHPStan analysis complete. Check artifacts for detailed results."
 
       - store_artifacts:
           path: test-results/phpstan
